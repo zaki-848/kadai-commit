@@ -7,6 +7,38 @@ class User < ApplicationRecord
   has_secure_password
   
   has_many :microposts
+  
+  has_many :favorites
+  # def favorites
+  #   Favorite.where(user_id: self.id)
+  # end
+  # self(Userのインスタンス)がお気に入りをしたレコード、つまり、
+  #Favoriteモデルのuser_idのカラムの中に selfのIDが入ったものを抽出
+
+  has_many :likeings, through: :favorites, source: :micropost
+  
+  # def likeings
+  #   Micropost.where(id: Favorite.where(user_id: self.id).pluck(:micropost_id))
+  #   Micropost.where(id: self.favorites.pluck(:micropost_id))
+  # end
+  #favoritesのメソッドを利用して、Micropostのレコードを再抽出したもの
+  
+  # has_many :reverses_of_favorites, class_name: 'Favorite', foreign_key: :micropost
+  # has_many :likers, through: :reverses_of_favorites, source: :user
+  
+  def like(micropost)
+    self.favorites.find_or_create_by(micropost_id: micropost.id)
+  end
+
+  def unlike(micropost)
+    favorites = self.favorites.find_by(micropost_id: micropost.id)
+    favorites.destroy if favorites
+  end
+
+  def likeing?(micropost)
+    self.likeings.include?(micropost)
+  end
+  
   has_many :relationships
   has_many :followings, through: :relationships, source: :follow
   has_many :reverses_of_relationship, class_name: 'Relationship', foreign_key: 'follow_id'
